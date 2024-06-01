@@ -1,5 +1,6 @@
 fileIn "ConvertGeometricIndexToMapIndices.ms" 
 fileIn "Alert.ms"
+fileIn "GetLastModifier.ms" 
 
 try (destroyDialog SetVertexColorRollout) catch()
 
@@ -8,7 +9,6 @@ rollout SetVertexColorRollout "Vertex Color Painter" width:180
 	local SELECTION_CHANNEL = 1
 	local VERTEX_COLOR_CHANNEL = 0
 
-	
 	group "Color 1"
 	(
 		colorPicker color1 "" color:(color 255 0 0) align:#left across:2
@@ -40,7 +40,7 @@ rollout SetVertexColorRollout "Vertex Color Painter" width:180
 	(
 		local colorVector = point3 (pickedColor.red/255) (pickedColor.green/255) (pickedColor.blue/255)
 		
-		undo "Paint with color" on
+		undo "Paint with Color" on
 		(
 			if selection.count == 0 then
 			(
@@ -49,44 +49,58 @@ rollout SetVertexColorRollout "Vertex Color Painter" width:180
 			else
 			(
 				local obj = selection[1]
-				if classOf obj != Editable_Poly then
+				if classOf obj != PolyMeshObject do
 				(
-					messageBox "Selected object is not a Editable_Poly. Please select a Editable_Poly."
+					messageBox "Selected object is not a PolyMeshObject. Please select a PolyMeshObject."
 					return()
 				)
 				
+				local vertexPaintMod = getLastModifier obj VertexPaint
+				if (classOf vertexPaintMod == undefined) do
+				(
+					messageBox "There must be a VertexPaint modifier on the stack.."
+					return()
+				)
+				
+				local polySelectMod = getLastModifier obj Poly_Select
+				if (classOf polySelectMod == undefined) do
+				(
+					messageBox "There must be a Poly Select modifier on the stack."
+					return()
+				)
+				
+				local state = vertexPaintMod.AcquirePaintState obj
 				local totalVerts = polyop.getNumVerts obj
-				if obj.useSoftSelection then
+				if polySelectMod.useSoftSelection then
 				(
 					for vertexIndex = 1 to totalVerts do
 					(
 						local selectionAmount = polyop.getVDataValue obj SELECTION_CHANNEL vertexIndex
-						local mapIndices = (convertGeometricIndexToMapIndices obj vertexIndex VERTEX_COLOR_CHANNEL)
-						for mappingIndex in mapIndices do
-						(
-							local currentColor = polyop.getMapVert obj VERTEX_COLOR_CHANNEL mappingIndex
-							local newColor = (selectionAmount * colorVector) + (1 - selectionAmount) * currentColor
-							polyop.setMapVert obj 0 mappingIndex newColor
-						)
+						local averageColor = state.GetVertAverageColor vertexIndex
+						local currentColor = [averageColor.x, averageColor.y, averageColor.z]
+						local newColor = (selectionAmount * colorVector) + (1 - selectionAmount) * currentColor
+						state.SetVertColor vertexIndex [newColor.x, newColor.y, newColor.z, 1]
 					)
 				)
 				else
 				(
-					local vertSelection = polyOp.getVertSelection obj			
+					local vertSelection = getVertSelection obj polySelectMod
 					for vertexIndex = 1 to totalVerts do
 					(
 						if vertSelection[vertexIndex] then
 						(
-							local mappingIndices = (getMappingIndices obj 0 vertexIndex)
-							for mappingIndex in mappingIndices do
-								polyop.setMapVert obj 0 mappingIndex colorVector
-							)
+							state.SetVertColor vertexIndex [colorVector.x, colorVector.y, colorVector.z, 1]
+						)
 					)
 				)
+				vertexPaintMod.ApplyPaintState obj state
+				vertexPaintMod.ReleasePaintState obj state
+				
+				
 				redrawViews()
 			)
 		)
-	)	
+	)
 	
 	on paintButton1 pressed do
 	(
@@ -113,5 +127,5 @@ rollout SetVertexColorRollout "Vertex Color Painter" width:180
 		paintWithColor color5.color
 	)
 )
-
+1
 createDialog SetVertexColorRollout
