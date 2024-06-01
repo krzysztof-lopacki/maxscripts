@@ -1,6 +1,7 @@
 fileIn "ConvertGeometricIndexToMapIndices.ms" 
 fileIn "Alert.ms"
 fileIn "GetLastModifier.ms" 
+fileIn "AddColors.ms" 
 
 try (destroyDialog SetVertexColorRollout) catch()
 
@@ -76,10 +77,9 @@ rollout SetVertexColorRollout "Vertex Color Painter" width:180
 					for vertexIndex = 1 to totalVerts do
 					(
 						local selectionAmount = polyop.getVDataValue obj SELECTION_CHANNEL vertexIndex
-						local averageColor = state.GetVertAverageColor vertexIndex
-						local currentColor = [averageColor.x, averageColor.y, averageColor.z]
-						local newColor = (selectionAmount * colorVector) + (1 - selectionAmount) * currentColor
-						state.SetVertColor vertexIndex [newColor.x, newColor.y, newColor.z, 1]
+						local baseColor = state.GetVertAverageColor vertexIndex
+						local newColor = addColors baseColor [colorVector.x, colorVector.y, colorVector.z, selectionAmount]
+ 						state.SetVertColor vertexIndex [newColor.x, newColor.y, newColor.z, newColor.w]
 					)
 				)
 				else
