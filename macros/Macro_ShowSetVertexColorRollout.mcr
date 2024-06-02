@@ -1,6 +1,6 @@
 macroScript ShowSetVertexColorRollout 
 category:"Custom Tools" 
-toolTip:"Show Set Vertex Color"
+toolTip:"Set Vertex Color"
 Icon:#("Compound",4)
 (
 	include "../scripts/SetVertexColor.mxs"

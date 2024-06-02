@@ -1,0 +1,119 @@
+rollout SetVertexGradientColorRollout "Vertex Gradient Painter" width:200
+(
+	group "Top color"
+	(
+		colorPicker topColor "" color:(color 255 255 255) align:#left across:2
+		spinner topPosition "Position" range:[0, 999999, 100] width:150 offset:[0,3] align:#right type:#worldunits
+	)
+
+	group "Mid color"
+	(
+		colorPicker midColor "" color:(color 128 128 128) align:#left across:2
+		spinner midPosition "Position" range:[0, 999999, 50] width:150 offset:[0,3] align:#right type:#worldunits
+	)
+	
+	group "Bottom color"
+	(
+		colorPicker bottomColor "" color:(color 0 0 0) align:#left across:2
+		spinner bottomPosition "Position" range:[0, 999999, 0] width:150 offset:[0,3] align:#right type:#worldunits
+	)
+	
+	button paintButton "Paint with gradient"
+	
+	fn mixColors startColor endColor rangeStart rangeEnd position = 
+	(
+		local multiplier = (position - rangeStart) / (rangeEnd - rangeStart)
+		[	multiplier * endColor.x + (1 - multiplier) * startColor.x, 
+			multiplier * endColor.y + (1 - multiplier) * startColor.y,
+			multiplier * endColor.z + (1 - multiplier) * startColor.z ]
+	)
+	
+	fn paintObjectWithGradient obj bottomColor midColor topColor bottomHeight midHeight topHeight =
+	(
+		include "ConvertGeometricIndexToMapIndices.mxs" 
+		include "GetLastModifier.mxs"
+		include "AddColors.mxs" 
+		
+		local vertexPaintMod = getLastModifier obj VertexPaint
+		local paintState = vertexPaintMod.AcquirePaintState obj
+		
+		local totalVerts = polyop.getNumVerts obj		
+		
+		colorVector = [1, 0, 0]
+		
+		for vertexIndex = 1 to totalVerts do
+		(
+			vertexPosition = polyOp.getVert obj vertexIndex
+			local colorVector
+			if (vertexPosition.z < bottomHeight) then
+			(
+				colorVector = bottomColor
+			)
+			else if (vertexPosition.z > topHeight) then
+			(
+				colorVector = topColor
+			)
+			else 
+			(
+				local gammaProgress = (vertexPosition.z - bottomHeight) / (topHeight - bottomHeight)
+				local gammaPosition = (gammaProgress ^ 2.2) * (topHeight - bottomHeight) + bottomHeight
+				if (gammaPosition < midHeight) then
+				(
+					colorVector = mixColors bottomColor midColor bottomHeight midHeight gammaPosition
+				)
+				else 
+				(
+					colorVector = mixColors midColor topColor midHeight topHeight gammaPosition
+				)				
+			)
+			paintState.SetVertColor vertexIndex [colorVector.x, colorVector.y, colorVector.z, 1]
+		)	
+		vertexPaintMod.ApplyPaintState obj paintState
+		vertexPaintMod.ReleasePaintState obj paintState
+	)
+	
+	fn paintWithGradient bottomColor midColor topColor bottomHeight midHeight topHeight =
+	(
+		include "GetLastModifier.mxs"
+		
+		local topColor = point3 (topColor.red/255) (topColor.green/255) (topColor.blue/255)
+		local midColor = point3 (midColor.red/255) (midColor.green/255) (midColor.blue/255)
+		local bottomColor = point3 (bottomColor.red/255) (bottomColor.green/255) (bottomColor.blue/255)
+		
+		undo "Paint with Gradient" on
+		(
+			if selection.count == 0 then
+			(
+				messageBox "No object selected. Please select an object with vertices."
+			)
+			else
+			(
+				-- assert that all the objects are of supported type and have required modifiers
+				for obj in selection do
+				(
+					if classOf obj != PolyMeshObject do
+					(
+						messageBox (obj.name as string + " is not a PolyMeshObject (is not an Editable Poly with modifiers).")
+						return()
+					)
+					if (getLastModifier obj VertexPaint == undefined) do
+					(
+						messageBox (obj.name as string + " must have a VertexPaint modifier on the stack.")
+						return()
+					)	
+				)
+				
+				-- paint all the objects, one by one
+				for obj in selection do
+				(
+					paintObjectWithGradient obj bottomColor midColor topColor bottomHeight midHeight topHeight
+				)
+			)
+		)
+	)
+	
+	on paintButton pressed do
+	(
+		paintWithGradient bottomColor.color midColor.color topColor.color bottomPosition.value midPosition.value topPosition.value
+	)
+)
