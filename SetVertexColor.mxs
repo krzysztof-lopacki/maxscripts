@@ -1,7 +1,6 @@
-fileIn "ConvertGeometricIndexToMapIndices.ms" 
-fileIn "Alert.ms"
-fileIn "GetLastModifier.ms" 
-fileIn "AddColors.ms" 
+fileIn "ConvertGeometricIndexToMapIndices.mxs" 
+fileIn "GetLastModifier.mxs" 
+fileIn "AddColors.mxs" 
 
 try (destroyDialog SetVertexColorRollout) catch()
 
@@ -148,5 +147,3 @@ rollout SetVertexColorRollout "Vertex Color Painter" width:180
 		paintWithColor color5.color
 	)
 )
-1
-createDialog SetVertexColorRollout
