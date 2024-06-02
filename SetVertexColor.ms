@@ -57,22 +57,32 @@ rollout SetVertexColorRollout "Vertex Color Painter" width:180
 				)
 				
 				local vertexPaintMod = getLastModifier obj VertexPaint
-				if (classOf vertexPaintMod == undefined) do
+				if (vertexPaintMod == undefined) do
 				(
 					messageBox "There must be a VertexPaint modifier on the stack.."
 					return()
 				)
 				
-				local polySelectMod = getLastModifier obj Poly_Select
-				if (classOf polySelectMod == undefined) do
+				local selectionModifer = obj.modifiers[1]
+				local selectionModiferClass = classOf selectionModifer
+				local useSoftSelection = false
+				if (selectionModiferClass == Poly_Select) then
 				(
-					messageBox "There must be a Poly Select modifier on the stack."
+					useSoftSelection = selectionModifer.useSoftSelection
+				)
+				else if (selectionModiferClass == Edit_Poly) then
+				(
+					useSoftSelection = selectionModifer.useSoftSel 
+				)
+				else
+				(
+					messageBox "The last modifer has to be Poly Select or Edit_Poly."
 					return()
 				)
 				
 				local state = vertexPaintMod.AcquirePaintState obj
 				local totalVerts = polyop.getNumVerts obj
-				if polySelectMod.useSoftSelection then
+				if useSoftSelection then
 				(
 					for vertexIndex = 1 to totalVerts do
 					(
@@ -84,7 +94,7 @@ rollout SetVertexColorRollout "Vertex Color Painter" width:180
 				)
 				else
 				(
-					local vertSelection = getVertSelection obj polySelectMod
+					local vertSelection = getVertSelection obj selectionModifer
 					for vertexIndex = 1 to totalVerts do
 					(
 						if vertSelection[vertexIndex] then
@@ -95,9 +105,6 @@ rollout SetVertexColorRollout "Vertex Color Painter" width:180
 				)
 				vertexPaintMod.ApplyPaintState obj state
 				vertexPaintMod.ReleasePaintState obj state
-				
-				
-				redrawViews()
 			)
 		)
 	)
