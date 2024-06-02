@@ -1,9 +1,3 @@
-fileIn "ConvertGeometricIndexToMapIndices.mxs" 
-fileIn "GetLastModifier.mxs" 
-fileIn "AddColors.mxs" 
-
-try (destroyDialog SetVertexColorRollout) catch()
-
 rollout SetVertexColorRollout "Vertex Color Painter" width:180
 (
 	local SELECTION_CHANNEL = 1
@@ -38,6 +32,10 @@ rollout SetVertexColorRollout "Vertex Color Painter" width:180
 	-- local method for painting the object
 	fn paintObjectWithColor obj colorVector = 
 	(
+		include "ConvertGeometricIndexToMapIndices.mxs" 
+		include "GetLastModifier.mxs"
+		include "AddColors.mxs" 
+		
 		local vertexPaintMod = getLastModifier obj VertexPaint
 		local selectionModifer = obj.modifiers[1]
 		local selectionModiferClass = classOf selectionModifer
@@ -82,6 +80,8 @@ rollout SetVertexColorRollout "Vertex Color Painter" width:180
 	
 	fn paintWithColor pickedColor =
 	(
+		include "GetLastModifier.mxs"
+		
 		local colorVector = point3 (pickedColor.red/255) (pickedColor.green/255) (pickedColor.blue/255)
 		
 		undo "Paint with Color" on
