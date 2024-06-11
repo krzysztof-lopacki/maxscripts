@@ -1,0 +1,40 @@
+rollout RemoveAllCustomAttributesRollout "Vertex Color Painter" width:180
+(
+	button removeButton "Remove Custom Attributes"
+
+	fn removeCustomAttributes obj = 
+	(
+		local attributeSets = custAttributes.getDefs obj BaseObject: true
+
+		if (attributeSets == undefined or attributeSets.count == 0) then
+		(
+			format "Object '%' has no custom attributes.\n" (obj.name)
+			return()
+		)
+
+		for attributesSet in attributeSets do 
+		(
+			custAttributes.delete obj attributesSet BaseObject: true
+		)
+	)
+	
+	fn removeCustomAttributesFromSelected =
+	(
+		if selection.count == 0 then
+		(
+			messageBox "No object selected. Please select an object."
+		)
+		else
+		(
+			for obj in selection do
+			(
+				removeCustomAttributes obj
+			)
+		)
+	)
+	
+	on removeButton pressed do
+	(
+		removeCustomAttributesFromSelected()
+	)
+)

@@ -1,0 +1,62 @@
+fn printCustomAttributes obj = 
+(
+	local nameIndex = 1
+	local idIndex = 2
+	local referenceNoIndex = 3
+	local keywordParamsIndex = 4
+	
+	local attributeSets = custAttributes.getDefs obj BaseObject: true
+	
+	if (attributeSets == undefined or attributeSets.count == 0) then
+	(
+		format "Object has no custom attributes"
+		return()
+	)
+
+	for attributesSet in attributeSets do 
+	(
+		local attributeSetValues = custAttributes.get obj attributesSet BaseObject:true
+		
+		format "Attributes set {\n"
+		format "\tname: %,\n" attributesSet.name
+		format "\tattribID: %,\n" attributesSet.attribID
+		format "\tattribute_groups: [\n"
+			
+		for attributeGroup in custAttributes.getPBlockDefs attributesSet do
+		(
+			format "\t\t{\n"
+			format "\t\t\tname: %\n" attributeGroup[nameIndex]
+			format "\t\t\tid: %\n" attributeGroup[idIndex]
+			format "\t\t\treference_number: %\n" attributeGroup[referenceNoIndex]
+			
+			format "\t\t\tkeyword_params: {\n"
+			keywordParams = attributeGroup[keywordParamsIndex]
+			for keywordIndex = 1 to keywordParams.Count/2 do 
+			( 
+				format "\t\t\t\t%: %,\n" keywordParams[keywordIndex] keywordParams[keywordIndex+1] 
+			) 
+			format "\t\t\t}\n"			
+			
+			
+			format "\t\t\tattributes: [\n" 
+			for attributeIndex = 5 to attributeGroup.count do
+			(
+				local attribute = attributeGroup[attributeIndex]
+				format "\t\t\t\t{\n"
+				format "\t\t\t\t\tname: %,\n" attribute[1]
+				format "\t\t\t\t\tvalue: %,\n" (getProperty attributeSetValues attribute[1])
+				format "\t\t\t\t\tproperties: [\n"				
+				for paramIndex = 1 to attribute[2].count by 2 do
+				(
+					format "\t\t\t\t\t\t%: %,\n" attribute[2][paramIndex] attribute[2][paramIndex + 1]
+				)					
+				format "\t\t\t\t\t]\n"
+				format "\t\t\t\t},\n"
+			)
+			format "\t\t\t]\n"
+			format "\t\t},\n"
+		)
+		format "\t]\n"
+		format "}\n"
+	)
+)
