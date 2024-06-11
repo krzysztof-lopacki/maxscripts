@@ -1,0 +1,15 @@
+fn collectSlateMaterialEditorMaterials = (
+	local smeMaterials = #()
+	for i = 1 to sme.GetNumViews() do 
+	(
+		view = sme.GetView(i)
+		for n = 1 to view.GetNumNodes() do (
+			node = view.GetNode n
+			if (isKindOf node.reference Material) do
+			(
+				append smeMaterials node.reference
+			)
+		)
+	)
+	return smeMaterials
+)

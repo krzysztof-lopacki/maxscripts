@@ -1,0 +1,181 @@
+global assignedMaterialCustomAttributeId = #(0x7c3e099b, 0xd7bb97b)
+
+rollout AssignedMaterialRollout "Assigned material" width:290
+(
+	include "Alert.mxs"
+	include "CollectSlateMaterialEditorMaterials.mxs"
+	
+	button saveButton "Save assigned material in a custom attribute" width:260
+	button restoreButton "Restore assigned material from a custom attribute" width:260
+	button removeButton "Remove assigned material info" width:260
+	
+	local attributesSetDefinition = attributes "Assigned material" attribID:assignedMaterialCustomAttributeId
+	(
+		parameters main rollout:paramsRollout
+		(
+			assignedMaterial type:#string default:"" ui:assignedMaterialTextView
+		)	
+		rollout paramsRollout "Assigned material"
+		(
+			edittext assignedMaterialTextView "Material" readOnly:true
+		)
+	)
+	
+	fn saveAssignedMaterialInCustomAttribute obj =
+	(
+		-- asign attribute if required
+		custAttributes.add obj attributesSetDefinition BaseObject:true
+		
+		-- assign attribute data
+		if obj.material != undefined then
+		(
+			local attributesSet = custAttributes.get obj attributesSetDefinition BaseObject:true
+			attributesSet.assignedMaterial = obj.material.name
+		)
+		else
+		(
+			format "The object has no material assigned.\n"
+		)
+	)
+	
+	fn restoreAssignedMaterialFromCustomAttribute obj =
+	(
+		local attributesSet = custAttributes.get obj attributesSetDefinition BaseObject:true
+		local materialName = attributesSet.assignedMaterial
+
+		local restoredMaterial = meditMaterials[materialName]
+		if (restoredMaterial == undefined) do
+		(
+			restoredMaterial = sceneMaterials[materialName]
+		)
+		if (restoredMaterial == undefined) do
+		(
+			restoredMaterial = currentMaterialLibrary[materialName]
+		)
+		if (restoredMaterial == undefined) do
+		(
+			for currentMaterial in collectSlateMaterialEditorMaterials() do
+			(
+				showInterfaces currentMaterial
+				if (currentMaterial.name == materialName) do
+				(
+					restoredMaterial = currentMaterial
+					exit
+				)
+			)
+		)
+		
+		if (restoredMaterial == undefined) then
+		(
+			messageBox ("Cannot restore [" + materialName + "] material - it is neither present in the scene nor in material editor.")
+		)
+		else
+		(
+			obj.material = restoredMaterial		
+		)
+	)
+
+	
+	fn removeCustomAttribute obj =
+	(
+		custAttributes.delete obj attributesSetDefinition
+	)
+		
+	on saveButton pressed do
+	(
+		if selection.count == 0 then
+		(
+			messageBox "No object selected. Please select at least one object."
+		)
+		else
+		(
+			for obj in selection do
+			(
+				saveAssignedMaterialInCustomAttribute obj
+			)
+		)
+	)
+	
+	on removeButton pressed do
+	(
+		if selection.count == 0 then
+		(
+			messageBox "No object selected. Please select at least one object."
+		)
+		else
+		(
+			for obj in selection do
+			(
+				removeCustomAttribute obj
+			)
+		)
+	)
+	
+	on restoreButton pressed do
+	(
+		if selection.count == 0 then
+		(
+			messageBox "No object selected. Please select at least one object."
+		)
+		else
+		(m
+			for obj in selection do
+			(
+				restoreAssignedMaterialFromCustomAttribute obj
+			)
+		)
+	)
+)
+	
+/*
+PUTTING MULTIPLE MATERIALS TO LISTBOX
+
+local attributesSetDefinition = attributes "Assigned materials" attribID:assignedMaterialsCustomAttributeId
+(
+	parameters main rollout:paramsRollout
+	(
+		assignedMaterials type:#string default:(#() as String)
+	)	
+	rollout paramsRollout "Assigned materials"
+	(
+		listbox assignedMaterialsListView "Materials" items:(execute assignedMaterials) readOnly:true
+	)
+)
+
+fn saveAssignedMaterialsInCustomAttribute obj =
+(
+	-- asign attribute if required
+	custAttributes.add obj attributesSetDefinition BaseObject:true
+	
+	-- assign attribute data
+	if obj.material != undefined then
+	(
+		local materials = #()
+		
+		local mat = obj.material
+		
+		if classOf mat == MultiMaterial then
+		(
+			for i = 1 to mat.numsubs do
+			(
+				if (mat[i] != undefined) then
+				(
+					append materials ((i as string) + ":" + mat[i].name)
+				)
+			)
+		)
+		else
+		(
+			append materials ("1:" + mat.name)
+		)
+		
+		local attributesSet = custAttributes.get obj attributesSetDefinition
+		attributesSet.assignedMaterials = (materials as string)
+		attributesSet.paramsRollout.assignedMaterialsListView.items = materials
+	)
+	else
+	(
+		format "The object has no material assigned.\n"
+	)
+)
+*/
