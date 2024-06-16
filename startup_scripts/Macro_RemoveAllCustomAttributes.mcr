@@ -1,9 +1,9 @@
 macroScript ShowRemoveAllCustomAttributesRollout
 category:"Custom Tools" 
 toolTip:"Remove all custom attributes"
-Icon:#("Compound",12)
+Icon:#("Containers",12)
 (
-	fileIn "../scripts/RemoveAllCustomAttributes.mxs"
+	include @"$userStartupScripts/../scripts\RemoveAllCustomAttributes.mxs"
 	try (destroyDialog RemoveAllCustomAttributesRollout) catch()
 	createDialog RemoveAllCustomAttributesRollout
 )	

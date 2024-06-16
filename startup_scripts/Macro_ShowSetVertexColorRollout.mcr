@@ -1,9 +1,9 @@
 macroScript ShowSetVertexColorRollout 
 category:"Custom Tools" 
 toolTip:"Set Vertex Color"
-Icon:#("Compound",4)
+Icon:#("Material_Modifiers",3)
 (
-	fileIn "../scripts/SetVertexColor.mxs"
+	include @"$userStartupScripts/../scripts/SetVertexColor.mxs"
 	try (destroyDialog SetVertexColorRollout) catch()
 	createDialog SetVertexColorRollout
 )	
