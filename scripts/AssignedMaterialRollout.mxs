@@ -40,9 +40,51 @@ rollout AssignedMaterialRollout "Assigned material" width:290
 	
 	fn restoreAssignedMaterialFromCustomAttribute obj =
 	(
-		local attributesSet = custAttributes.get obj attributesSetDefinition BaseObject:true
-		local materialName = attributesSet.assignedMaterial
+		local attributeSets = custAttributes.getDefs obj BaseObject: true
+		if (attributeSets == undefined or attributeSets.count == 0) then
+		(
+			format "Object has no custom attributes.\n"
+			return()
+		)
+		
+		materialName = undefined
+		
+		-- method 1 -- 
+		try
+		(
+			local attributesSet = custAttributes.get obj attributesSetDefinition BaseObject:true
+			local materialName = attributesSet.assignedMaterial
+		) 
+		catch ()
+					
 
+		-- method 2 --
+		if (materialName == undefined) do
+		(
+			for attributesSet in attributeSets do 
+			(
+				local attributeSetValues = custAttributes.get obj attributesSet BaseObject:true
+				for attributeGroup in custAttributes.getPBlockDefs attributesSet do
+				(
+					for attributeIndex = 5 to attributeGroup.count do
+					(
+						local attribute = attributeGroup[attributeIndex]
+						if ((attribute[1] as string) == "assignedMaterial") do
+						(
+							materialName = (getProperty attributeSetValues attribute[1])
+							exit
+						)
+					)
+				)
+			)
+		)
+
+		if (materialName == undefined) do
+		(
+			format "Assigned material info not found for %.\n" (obj.name)
+			return()	
+		)
+		
 		local restoredMaterial = meditMaterials[materialName]
 		if (restoredMaterial == undefined) do
 		(
