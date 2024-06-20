@@ -3,11 +3,13 @@ rollout AssignedMaterialRollout "Assigned material" width:290
 	global assignedMaterialCustomAttributeId = #(0x7c3e099b, 0xd7bb97b)
 
 	include "Alert.mxs"
+	include "PrintCustomAttributes.mxs"
 	include "CollectSlateMaterialEditorMaterials.mxs"
 	
 	button saveButton "Save assigned material in a custom attribute" width:260
 	button restoreButton "Restore assigned material from a custom attribute" width:260
 	button removeButton "Remove assigned material info" width:260
+	button printButton "Debug - print properties" width:260
 	
 	local attributesSetDefinition = attributes "Assigned material" attribID:assignedMaterialCustomAttributeId
 	(
@@ -160,10 +162,25 @@ rollout AssignedMaterialRollout "Assigned material" width:290
 			messageBox "No object selected. Please select at least one object."
 		)
 		else
-		(m
+		(
 			for obj in selection do
 			(
 				restoreAssignedMaterialFromCustomAttribute obj
+			)
+		)
+	)
+	
+	on printButton pressed do
+	(
+		if selection.count == 0 then
+		(
+			messageBox "No object selected. Please select at least one object."
+		)
+		else
+		(
+			for obj in selection do
+			(
+				printCustomAttributes obj
 			)
 		)
 	)
