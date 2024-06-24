@@ -135,7 +135,7 @@ rollout AssignedMaterialRollout "Assigned material" width:290
 		(
 			for obj in selection do
 			(
-				saveAssignedMaterialInCustomAttribute obj
+				if (superclassof obj != Helper) do saveAssignedMaterialInCustomAttribute obj
 			)
 		)
 	)
@@ -165,7 +165,7 @@ rollout AssignedMaterialRollout "Assigned material" width:290
 		(
 			for obj in selection do
 			(
-				restoreAssignedMaterialFromCustomAttribute obj
+				if (superclassof obj != Helper) do restoreAssignedMaterialFromCustomAttribute obj
 			)
 		)
 	)
